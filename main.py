@@ -30,22 +30,41 @@ app.config = {
 def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post("/")
-async def upload_file(file: UploadFile):
-    # Upload the file to S3
-    s3 = boto3.client('s3')
-    s3.upload_fileobj(file.file, 'my-bucket', file.filename)
-    textract = boto3.client('textract')
+@app.get('/upload')
+def upload_page(request:Request):
+    return templates.TemplateResponse("Upload.html", {"request": request})
 
-    # Call the Textract OCR on the file
-    response = textract.process(file.file)
-    text = response.decode('utf-8')
+@app.post("/upload")
+async def upload_files(files= File(...)):
+    # Iterate over the uploaded files
+    S3_CLIENT=boto3.client('s3')
+    for file in files:
+        # Upload the file to S3
+        s3_object_key = file.filename
+        S3_CLIENT.upload_fileobj(file.file, app.config("AWS_S3_BUCKET"), s3_object_key)
 
-    # Extract the necessary data and store it in the database
-    # ...
+        # Call Textract OCR on the file
+        textract_client = boto3.client("textract", region_name=app.config('AWS_REGION'))
+        textract_response = textract_client.detect_document_text(
+            Document={"S3Object": {"Bucket": app.config("AWS_S3_BUCKET"), "Name": s3_object_key}}
+        )
 
-    # Redirect to the homepage
-    return {"message": "File uploaded successfully"}
+        # Extract data from Textract response
+        extracted_data = extract_data_from_textract(textract_response)
+
+        # Store extracted data in PostgreSQL database
+        conn = get_db_conn()
+        cur = conn.cursor()
+        query = """
+            INSERT INTO your_table_name (field1, field2, ...)
+            VALUES (%s, %s, ...)
+        """
+        cur.execute(query, (extracted_data["field1"], extracted_data["field2"], ...))
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    return {"message": "Files uploaded successfully"}
 
 @app.get("/analysis")
 def analysis():
@@ -63,3 +82,11 @@ def get_db_conn():
         password=app.config['DB_PASSWORD']
     )
     return conn
+
+def extract_data_from_textract(textract_response):
+    # Parse Textract response to get relevant data
+    # ...
+
+    # Return a dictionary with the extracted data
+    extracted_data = {"field1": "value1", "field2": "value2"}
+    return extracted_data

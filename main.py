@@ -151,7 +151,7 @@ def get_month_wise_total():
     
 
 @app.get("/total/yearly")
-async def yearly_total(year: int=2022) -> dict:
+async def yearly_total(year: int=2021) -> dict:
     conn= get_db_conn()
     cursor = conn.cursor()
     query = f"""
@@ -170,7 +170,7 @@ async def yearly_total(year: int=2022) -> dict:
     return {"total": total}
 
 @app.get("/total/monthly")
-async def monthly_total(month: int =12, year: int =2022) -> dict:
+async def monthly_total(month: int =6, year: int =2022) -> dict:
     conn= get_db_conn()
     cursor = conn.cursor()
     query = f"""
@@ -203,3 +203,29 @@ def get_invoice_count():
         return {"count": count}
     except (Exception, psycopg2.Error) as error:
         print("Error fetching data from PostgreSQL", error)
+
+
+@app.get("/highest_product_prices")
+def get_product_prices():
+    conn = get_db_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT
+  EXTRACT(MONTH FROM to_date(order_date, 'DD/MM/YYYY')) AS month,
+  COALESCE(MAX(total), 0) AS highest_total
+FROM
+  public.invoice_details
+GROUP BY
+  EXTRACT(MONTH FROM to_date(order_date, 'DD/MM/YYYY'))
+ORDER BY
+  month;
+
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    return {"data": rows}
+
+
+
+
+

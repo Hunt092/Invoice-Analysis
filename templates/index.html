@@ -379,8 +379,9 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Earnings (Monthly)</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">$40,000</div>
+                                                Spends (Monthly)</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="Monthly_spends">$0
+                                            </div>
                                         </div>
                                         <div class="col-auto">
                                             <i class="fas fa-calendar fa-2x text-gray-300"></i>
@@ -397,8 +398,9 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Earnings (Annual)</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">$215,000</div>
+                                                Spends (Annual)</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="Annual_spends">$0
+                                            </div>
                                         </div>
                                         <div class="col-auto">
                                             <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -444,8 +446,9 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Pending Requests</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                                                No. of Invoices</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="InvoiceCount">18
+                                            </div>
                                         </div>
                                         <div class="col-auto">
                                             <i class="fas fa-comments fa-2x text-gray-300"></i>
@@ -466,7 +469,7 @@
                                 <!-- Card Header - Dropdown -->
                                 <div
                                     class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Spending Overview</h6>
                                     <div class="dropdown no-arrow">
                                         <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -497,7 +500,7 @@
                                 <!-- Card Header - Dropdown -->
                                 <div
                                     class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Revenue Sources</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Vendors</h6>
                                     <div class="dropdown no-arrow">
                                         <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -519,15 +522,7 @@
                                         <canvas id="myPieChart"></canvas>
                                     </div>
                                     <div class="mt-4 text-center small">
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-primary"></i> Vendor 1
-                                        </span>
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-success"></i> vendor 2
-                                        </span>
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-info"></i> Sales
-                                        </span>
+
                                     </div>
                                 </div>
                             </div>
@@ -740,7 +735,45 @@
     <!-- Page level custom scripts -->
     <script src="{{ url_for('static', path='/js/demo/chart-area-demo.js')}}"></script>
     <script src="{{ url_for('static', path='/js/demo/chart-pie-demo.js')}}"></script>
+    <script>
+        let anual = document.getElementById("Annual_spends")
+        let monthly = document.getElementById("Monthly_spends")
+        let Invoicecount = document.getElementById("InvoiceCount")
+        fetch('/total/monthly')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // use the data as needed
+                monthly.innerHTML = data.total
+            })
+            .catch(error => {
+                console.error(error);
+            });
 
+        // Call API for annual totals
+        fetch('/total/yearly')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // use the data as needed
+                anual.innerText = data.total
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+        fetch('/invoices/count')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // use the data as needed
+                Invoicecount.innerText = data.count
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+    </script>
 </body>
 
 </html>
